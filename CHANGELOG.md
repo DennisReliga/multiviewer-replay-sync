@@ -2,7 +2,7 @@
 
 ## 0.1.0 — first public release
 
-- Host/join rooms over LAN, ZeroTier, Tailscale or any network where friends can reach the host.
+- Host/join rooms over your LAN, ZeroTier or any similar network where friends can reach the host.
 - Everyone in the room can pause, resume and seek; it is mirrored to all.
 - Follows MultiViewer's main feed; pause/resume reaches onboard windows, and MultiViewer's own sync
   is triggered after every change so onboards and live timing line up again.

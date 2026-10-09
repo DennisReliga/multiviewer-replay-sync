@@ -1,6 +1,6 @@
 # MultiViewer Replay Sync
 
-Watch F1 replays in [MultiViewer](https://multiviewer.app) together with friends — everyone's playback stays in sync over your LAN, [ZeroTier](https://www.zerotier.com) or [Tailscale](https://tailscale.com).
+Watch F1 replays in [MultiViewer](https://multiviewer.app) together with friends — everyone's playback stays in sync over your LAN, [ZeroTier](https://www.zerotier.com) or a similar virtual network.
 
 > **Unofficial.** This is a community project. It is not affiliated with, endorsed by or connected to MultiViewer, Formula 1, F1 TV or the Formula One group of companies. It does not share any video: everyone watches with their own F1 TV subscription.
 
@@ -53,7 +53,7 @@ The host's computer must accept connections on TCP port **8765**.
   ```powershell
   New-NetFirewallRule -DisplayName "MultiViewer Replay Sync" -Direction Inbound -Protocol TCP -LocalPort 8765 -Action Allow -InterfaceAlias "ZeroTier*"
   ```
-  Using a normal LAN or Tailscale instead? Swap `"ZeroTier*"` for that adapter's name (see `Get-NetAdapter`). Remove it again with `Remove-NetFirewallRule -DisplayName "MultiViewer Replay Sync"`.
+  Using a normal LAN or another virtual network instead? Swap `"ZeroTier*"` for that adapter's name (see `Get-NetAdapter`). Remove it again with `Remove-NetFirewallRule -DisplayName "MultiViewer Replay Sync"`.
 - **macOS:** allow the incoming connection when macOS asks.
 - **Linux:** with ufw, `sudo ufw allow 8765/tcp`.
 
@@ -61,7 +61,7 @@ Friends can test whether they get through (Windows): `Test-NetConnection <host-i
 
 ### Security
 
-Anyone who can reach the host's port can join the room and control playback, so keep it on a private network (ZeroTier, Tailscale, home LAN) and **don't forward the port on your router**. Set a `--password` if you share the network with people outside your group. The connection itself is not encrypted, but ZeroTier and Tailscale encrypt all traffic between peers. The password is never saved to disk.
+Anyone who can reach the host's port can join the room and control playback, so keep it on a private network (home LAN, ZeroTier or similar) and **don't forward the port on your router**. Set a `--password` if you share the network with people outside your group. The connection itself is not encrypted, but ZeroTier and similar virtual networks encrypt all traffic between peers. The password is never saved to disk.
 
 ## How it works
 
