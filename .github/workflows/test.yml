@@ -18,14 +18,10 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
       - run: go vet ./...
-      - run: npm ci
-      - run: npm test
+      - run: go test -v ./...
       - name: Test again with the race detector
         if: runner.os == 'Linux'
-        run: npm test
+        run: go test -race ./...
         env:
           MVRS_RACE: "1"

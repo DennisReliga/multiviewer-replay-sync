@@ -1,6 +1,4 @@
-node_modules/
-npm-debug.log*
-*.log
+dist/
+*.exe
 .DS_Store
 Thumbs.db
-dist/

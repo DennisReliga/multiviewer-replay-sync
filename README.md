@@ -88,12 +88,11 @@ MultiViewer has a local API (`localhost:10101`). Each person's app reads their p
 
 ## Development
 
-The app is written in Go. The end-to-end tests are a small Node.js script that runs real app binaries against fake MultiViewer players:
+The app is written in Go:
 
 ```
 go build        # builds the app for this system
-npm install
-npm test        # builds, then tests host + joiners; no real MultiViewer needed
+go test ./...   # runs real host + joiner processes against fake MultiViewer players
 ```
 
 Releases: push a tag like `v0.2.0`. GitHub Actions tests on Windows, macOS and Linux, builds the executables for all systems, and publishes the release.
