@@ -1,11 +1,12 @@
-// End-to-end tests against fake MultiViewer players. Run: npm test
-import { spawn } from "node:child_process";
+// End-to-end tests: real app binaries against fake MultiViewer players. Run: npm test
+// Builds the app with Go first, or tests an existing binary: MVRS_BIN=dist/multiviewer-replay-sync.exe npm test
+// MVRS_RACE=1 builds with the race detector (needs cgo).
+import { execFileSync, spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocket, WebSocketServer } from "ws";
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const cli = path.join(dir, "..", "src", "cli.js");
 const procs = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -19,8 +20,18 @@ function run(args, env = {}, command = process.execPath) {
   return p;
 }
 const mock = (port, start) => run([path.join(dir, "mock-multiviewer.js"), port, start]);
-// MVRS_BIN=dist/multiviewer-replay-sync.exe npm test  runs the same tests against a built executable
-const app = (args, env) => (process.env.MVRS_BIN ? run(args, env, path.resolve(process.env.MVRS_BIN)) : run([cli, ...args], env));
+let bin = process.env.MVRS_BIN && path.resolve(process.env.MVRS_BIN);
+if (!bin) {
+  bin = path.join(dir, "..", "dist", "mvrs-test" + (process.platform === "win32" ? ".exe" : ""));
+  const race = Boolean(process.env.MVRS_RACE);
+  console.log(`Building${race ? " with race detector" : ""}...`);
+  execFileSync("go", ["build", ...(race ? ["-race"] : []), "-o", bin, "."], {
+    cwd: path.join(dir, ".."),
+    stdio: "inherit",
+    env: { ...process.env, ...(race ? { CGO_ENABLED: "1" } : {}) },
+  });
+}
+const app = (args, env) => run(args, env, bin);
 const mv = (port) => ({ MULTIVIEWER_URL: `http://localhost:${port}/api/graphql` });
 const user = async (port, action, q = "") => (await fetch(`http://localhost:${port}/user/${action}${q}`)).json();
 const states = (ports) => Promise.all(ports.map((p) => user(p, "state")));

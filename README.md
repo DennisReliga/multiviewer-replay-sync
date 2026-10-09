@@ -18,31 +18,24 @@ Replays only: live streams can't be seeked, so there's nothing to sync.
 
 Everyone needs MultiViewer, an F1 TV account, and this app.
 
-### Easiest: download the app
+### Download
 
-Get the file for your system from the **[latest release](../../releases/latest)**. No install, nothing else needed:
+Get the file for your system from the **[latest release](../../releases/latest)**. It's one small file (about 7 MB), no install needed:
 
 | System | File | Start |
 |---|---|---|
-| **Windows** | `…-windows-x64.exe` | double-click |
-| **macOS** (Apple Silicon) | `…-macos-arm64.zip` | unzip, double-click |
-| **Linux** | `…-linux-x64.tar.gz` | unpack, run `./multiviewer-replay-sync` |
+| **Windows** | `…-windows-x64.exe` (`…-windows-arm64.exe` for ARM PCs) | double-click |
+| **macOS** | `…-macos-arm64.zip` (Apple Silicon) or `…-macos-x64.zip` (Intel) | unzip, double-click |
+| **Linux** | `…-linux-x64.tar.gz` or `…-linux-arm64.tar.gz` | unpack, run `./multiviewer-replay-sync` |
 
 The files aren't code-signed, so the first start shows a warning:
 - **Windows:** *"Windows protected your PC"* → **More info → Run anyway**.
+  If Windows **Smart App Control** is on, unsigned apps can't be started at all, not even with "Run anyway".
 - **macOS:** if it's blocked → **System Settings → Privacy & Security → Open Anyway**.
 
-### Alternative: run from source
+### Build it yourself
 
-For Intel Macs, or if you'd rather not run a downloaded executable. Download the code (green **Code** button → *Download ZIP*, or `git clone`), then:
-
-| | Install (once) | Start |
-|---|---|---|
-| **Windows** | double-click `install.bat` | double-click `start.bat` |
-| **macOS** | in Terminal: `bash install.sh` | double-click `start.command` |
-| **Linux** | `bash install.sh` | `./start.sh` |
-
-The installer sets up [Node.js](https://nodejs.org) 20+ if you don't have it (it asks first). On macOS, if double-clicking `start.command` is blocked, right-click it → *Open* once.
+With [Go](https://go.dev/dl/) installed: download the code, then run `go build` in its folder.
 
 ## Watching together
 
@@ -56,18 +49,18 @@ The app remembers your name and the host's address for next time; just press Ent
 ### Command line
 
 ```
-start.bat host [--port 8765] [--password secret]
-start.bat join 10.147.17.5 [--password secret]
-./start.sh join [fd00::1]:8765
+multiviewer-replay-sync host [--port 8765] [--password secret]
+multiviewer-replay-sync join 10.147.17.5 [--password secret]
+multiviewer-replay-sync join [fd00::1]:8765
 ```
 
-Options: `--name <name>`, `--password <text>`, `--player <id>` (which MultiViewer window to follow; default is the main feed), `--port`, `--help`.
+Options: `--name <name>`, `--password <text>`, `--player <id>` (which MultiViewer window to follow; default is the main feed), `--port`, `--version`, `--help`.
 
 ### Letting friends connect (host only)
 
 The host's computer must accept connections on TCP port **8765**.
 
-- **Windows:** `install.bat` offers to add the rule. To do it by hand, in an *administrator* PowerShell:
+- **Windows:** in an *administrator* PowerShell:
   ```powershell
   New-NetFirewallRule -DisplayName "MultiViewer Replay Sync" -Direction Inbound -Protocol TCP -LocalPort 8765 -Action Allow -InterfaceAlias "ZeroTier*"
   ```
@@ -95,15 +88,17 @@ MultiViewer has a local API (`localhost:10101`). Each person's app reads their p
 
 ## Development
 
+The app is written in Go. The end-to-end tests are a small Node.js script that runs real app binaries against fake MultiViewer players:
+
 ```
+go build        # builds the app for this system
 npm install
-npm test     # host + joiners against fake MultiViewer players, no real app needed
-npm run build   # standalone executable for this OS in dist/ (needs Node 25.5+)
+npm test        # builds, then tests host + joiners; no real MultiViewer needed
 ```
 
-Releases: push a tag like `v0.2.0`. GitHub Actions builds the executables for all three systems, tests them, and publishes the release.
+Releases: push a tag like `v0.2.0`. GitHub Actions tests on Windows, macOS and Linux, builds the executables for all systems, and publishes the release.
 
-Code: [`src/cli.js`](src/cli.js) (prompts/options), [`src/client.js`](src/client.js) (sync logic), [`src/server.js`](src/server.js) (room relay), [`src/multiviewer.js`](src/multiviewer.js) (MultiViewer API), [`src/protocol.js`](src/protocol.js) (message validation).
+Code: [`main.go`](main.go) (prompts/options), [`client.go`](client.go) (sync logic), [`server.go`](server.go) (room relay), [`multiviewer.go`](multiviewer.go) (MultiViewer API), [`protocol.go`](protocol.go) (message validation).
 
 ## License
 

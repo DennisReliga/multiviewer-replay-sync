@@ -1,5 +1,1 @@
-* text=auto
-# shell scripts must keep LF endings or they break on macOS/Linux, even when committed from Windows
-*.sh      text eol=lf
-*.command text eol=lf
-*.bat     text eol=crlf
+* text=auto eol=lf

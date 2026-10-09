@@ -2,7 +2,9 @@ name: test
 
 on:
   push:
+    branches: ["**"]
   pull_request:
+  workflow_call: # reused by the release workflow
 
 jobs:
   test:
@@ -10,12 +12,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node: [20, 22]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
       - uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 22
+      - run: go vet ./...
       - run: npm ci
       - run: npm test
+      - name: Test again with the race detector
+        if: runner.os == 'Linux'
+        run: npm test
+        env:
+          MVRS_RACE: "1"

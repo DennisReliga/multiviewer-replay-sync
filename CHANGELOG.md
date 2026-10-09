@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- Rewritten in Go: downloads are about 7 MB instead of 100 MB.
+- New downloads for Intel Macs, Windows on ARM and Linux on ARM.
+- Connections from web browsers are refused, so a web page can't join a room.
+- Removed the Node.js launchers and setup scripts; the downloads replace them.
+- Same features and network protocol as 0.1.0.
+
 ## 0.1.0 — first public release
 
 - Host/join rooms over your LAN, ZeroTier or any similar network where friends can reach the host.

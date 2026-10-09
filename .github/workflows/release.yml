@@ -1,6 +1,6 @@
 name: release
 
-# Push a tag like v0.1.0 to build standalone executables and publish them as a GitHub Release.
+# Push a tag like v0.2.0: runs the tests on all systems, builds the executables and publishes a GitHub Release.
 on:
   push:
     tags: ["v*"]
@@ -9,51 +9,35 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            asset: multiviewer-replay-sync-windows-x64.exe
-          - os: macos-latest
-            asset: multiviewer-replay-sync-macos-arm64.zip
-          - os: ubuntu-latest
-            asset: multiviewer-replay-sync-linux-x64.tar.gz
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 26 # --build-sea needs Node 25.5+
-      - run: npm ci
-      - run: npm run build
-      - name: Test the built executable
-        run: npm test
-        env:
-          MVRS_BIN: dist/multiviewer-replay-sync${{ runner.os == 'Windows' && '.exe' || '' }}
-      - name: Package
-        shell: bash
-        working-directory: dist
-        run: |
-          case "${{ runner.os }}" in
-            Windows) mv multiviewer-replay-sync.exe "${{ matrix.asset }}" ;;
-            # archives keep the executable bit, which a plain browser download would lose
-            macOS) zip -q "${{ matrix.asset }}" multiviewer-replay-sync ;;
-            Linux) tar czf "${{ matrix.asset }}" multiviewer-replay-sync ;;
-          esac
-      - uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.asset }}
-          path: dist/${{ matrix.asset }}
+  test:
+    uses: ./.github/workflows/test.yml
 
   release:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
-          path: assets
-          merge-multiple: true
+          go-version-file: go.mod
+      - name: Build
+        run: |
+          mkdir dist
+          build() { # GOOS GOARCH output
+            CGO_ENABLED=0 GOOS=$1 GOARCH=$2 go build -trimpath \
+              -ldflags "-s -w -X main.version=${GITHUB_REF_NAME#v}" -o "dist/$3" .
+          }
+          build windows amd64 multiviewer-replay-sync-windows-x64.exe
+          build windows arm64 multiviewer-replay-sync-windows-arm64.exe
+          # macOS and Linux files are archived only so the executable permission survives the download
+          for target in darwin/arm64/macos-arm64 darwin/amd64/macos-x64 linux/amd64/linux-x64 linux/arm64/linux-arm64; do
+            IFS=/ read -r os arch name <<< "$target"
+            build "$os" "$arch" multiviewer-replay-sync
+            if [ "$os" = darwin ]; then (cd dist && zip -q "multiviewer-replay-sync-$name.zip" multiviewer-replay-sync)
+            else tar czf "dist/multiviewer-replay-sync-$name.tar.gz" -C dist multiviewer-replay-sync; fi
+            rm dist/multiviewer-replay-sync
+          done
+          ls -l dist
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -64,13 +48,13 @@ jobs:
           | System | File | How to start |
           |---|---|---|
           | Windows | `multiviewer-replay-sync-windows-x64.exe` | Double-click. If *"Windows protected your PC"* appears: **More info → Run anyway** (first time only). |
-          | macOS (Apple Silicon) | `multiviewer-replay-sync-macos-arm64.zip` | Unzip, double-click. If macOS blocks it: **System Settings → Privacy & Security → Open Anyway** (first time only). |
-          | Linux | `multiviewer-replay-sync-linux-x64.tar.gz` | `tar xzf` it, then run `./multiviewer-replay-sync` in a terminal. |
+          | macOS | `…-macos-arm64.zip` (Apple Silicon) or `…-macos-x64.zip` (Intel) | Unzip, double-click. If macOS blocks it: **System Settings → Privacy & Security → Open Anyway** (first time only). |
+          | Linux | `…-linux-x64.tar.gz` or `…-linux-arm64.tar.gz` | `tar xzf` it, then run `./multiviewer-replay-sync` in a terminal. |
 
-          No Node.js or install needed. The warnings appear because the files aren't code-signed.
+          One small file, no install needed. The warnings appear because the files aren't code-signed.
           Everyone still needs MultiViewer and their own F1 TV account. See the [README](https://github.com/${{ github.repository }}#readme) for how to host and join.
 
           EOF
-          gh release create "$GITHUB_REF_NAME" assets/* \
+          gh release create "$GITHUB_REF_NAME" dist/* \
             --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" \
             --notes-file notes.md

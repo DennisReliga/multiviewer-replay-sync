@@ -1,37 +1,16 @@
 {
-  "name": "multiviewer-replay-sync",
-  "version": "0.1.0",
-  "description": "Watch F1 replays in sync with friends: an unofficial watch-party companion for MultiViewer",
-  "keywords": [
-    "f1",
-    "formula1",
-    "multiviewer",
-    "watch-party",
-    "sync",
-    "zerotier"
-  ],
+  "name": "multiviewer-replay-sync-tests",
+  "private": true,
+  "description": "End-to-end tests for the Go app (the app itself needs no Node.js)",
   "license": "MIT",
   "type": "module",
-  "bin": {
-    "multiviewer-replay-sync": "src/cli.js"
-  },
-  "files": [
-    "src"
-  ],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "start": "node src/cli.js",
-    "host": "node src/cli.js host",
-    "join": "node src/cli.js join",
-    "build": "node scripts/build.mjs",
     "test": "node test/e2e.js"
   },
-  "dependencies": {
-    "ws": "^8.18.0"
-  },
   "devDependencies": {
-    "esbuild": "^0.28.2"
+    "ws": "^8.18.0"
   }
 }
