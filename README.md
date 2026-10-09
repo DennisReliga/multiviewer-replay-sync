@@ -1,18 +1,18 @@
 # MultiViewer Replay Sync
 
-Watch F1 replays in [MultiViewer](https://multiviewer.app) together with friends — everyone's playback stays in sync over your LAN, [ZeroTier](https://www.zerotier.com) or a similar virtual network.
+Watch F1 replays in [MultiViewer](https://multiviewer.app) together with friends. Everyone's playback stays in sync over your LAN, [ZeroTier](https://www.zerotier.com) or a similar virtual network.
 
 > **Unofficial.** This is a community project. It is not affiliated with, endorsed by or connected to MultiViewer, Formula 1, F1 TV or the Formula One group of companies. It does not share any video: everyone watches with their own F1 TV subscription.
 
 ## What it does
 
-- **Everyone has controls.** Anyone pauses, resumes or seeks — the whole room follows.
+- **Everyone has controls.** When anyone pauses, resumes or seeks, the whole room follows.
 - **Onboards and live timing too.** It follows your main feed, pauses your onboard windows with it, and runs MultiViewer's own sync after every change so onboards and timing line up again.
 - **Self-correcting.** If someone's stream drifts more than 1.5 s, they're quietly moved back in line.
 - **Safe to join late.** New people jump straight to where the room is.
 - **Optional room password.**
 
-Replays only — live streams can't be seeked, so there's nothing to sync.
+Replays only: live streams can't be seeked, so there's nothing to sync.
 
 ## Setup
 
@@ -20,7 +20,7 @@ Everyone needs MultiViewer, an F1 TV account, and this app.
 
 ### Easiest: download the app
 
-Get the file for your system from the **[latest release](../../releases/latest)** — no install, nothing else needed:
+Get the file for your system from the **[latest release](../../releases/latest)**. No install, nothing else needed:
 
 | System | File | Start |
 |---|---|---|
@@ -47,9 +47,9 @@ The installer sets up [Node.js](https://nodejs.org) 20+ if you don't have it (it
 ## Watching together
 
 1. Everyone opens **the same replay** in MultiViewer.
-2. **One person hosts**: start the app and choose `host`. It prints the addresses friends can use — on ZeroTier, share the one marked `<- ZeroTier`.
+2. **One person hosts**: start the app and choose `host`. It prints the addresses friends can use. On ZeroTier, share the one marked `<- ZeroTier`.
 3. **Everyone else joins**: start the app, choose `join` and enter the host's address.
-4. Watch. Pause, rewind, skip — everyone stays together.
+4. Watch. Pause, rewind or skip, and everyone stays together.
 
 The app remembers your name and the host's address for next time; just press Enter to keep them.
 
@@ -87,11 +87,11 @@ MultiViewer has a local API (`localhost:10101`). Each person's app reads their p
 
 ## Troubleshooting
 
-- **"MultiViewer not reachable"** — start MultiViewer first.
-- **"No MultiViewer player open"** — open the replay.
-- **"Different session open than the room"** — you're on a different replay (or session) than the host.
-- **"Can't reach … is the host running?"** — check the host's address, that the host app is running, and the firewall rule.
-- **"Wrong room password"** — ask the host for it.
+- **"MultiViewer not reachable"**: start MultiViewer first.
+- **"No MultiViewer player open"**: open the replay.
+- **"Different session open than the room"**: you're on a different replay (or session) than the host.
+- **"Can't reach … is the host running?"**: check the host's address, that the host app is running, and the firewall rule.
+- **"Wrong room password"**: ask the host for it.
 
 ## Development
 
