@@ -1,0 +1,76 @@
+name: release
+
+# Push a tag like v0.1.0 to build standalone executables and publish them as a GitHub Release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            asset: multiviewer-replay-sync-windows-x64.exe
+          - os: macos-latest
+            asset: multiviewer-replay-sync-macos-arm64.zip
+          - os: ubuntu-latest
+            asset: multiviewer-replay-sync-linux-x64.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26 # --build-sea needs Node 25.5+
+      - run: npm ci
+      - run: npm run build
+      - name: Test the built executable
+        run: npm test
+        env:
+          MVRS_BIN: dist/multiviewer-replay-sync${{ runner.os == 'Windows' && '.exe' || '' }}
+      - name: Package
+        shell: bash
+        working-directory: dist
+        run: |
+          case "${{ runner.os }}" in
+            Windows) mv multiviewer-replay-sync.exe "${{ matrix.asset }}" ;;
+            # archives keep the executable bit, which a plain browser download would lose
+            macOS) zip -q "${{ matrix.asset }}" multiviewer-replay-sync ;;
+            Linux) tar czf "${{ matrix.asset }}" multiviewer-replay-sync ;;
+          esac
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'EOF'
+          ## Download
+
+          | System | File | How to start |
+          |---|---|---|
+          | Windows | `multiviewer-replay-sync-windows-x64.exe` | Double-click. If *"Windows protected your PC"* appears: **More info → Run anyway** (first time only). |
+          | macOS (Apple Silicon) | `multiviewer-replay-sync-macos-arm64.zip` | Unzip, double-click. If macOS blocks it: **System Settings → Privacy & Security → Open Anyway** (first time only). |
+          | Linux | `multiviewer-replay-sync-linux-x64.tar.gz` | `tar xzf` it, then run `./multiviewer-replay-sync` in a terminal. |
+
+          No Node.js or install needed. The warnings appear because the files aren't code-signed.
+          Everyone still needs MultiViewer and their own F1 TV account. See the [README](https://github.com/${{ github.repository }}#readme) for how to host and join.
+
+          EOF
+          gh release create "$GITHUB_REF_NAME" assets/* \
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" \
+            --notes-file notes.md

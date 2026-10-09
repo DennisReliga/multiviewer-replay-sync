@@ -9,8 +9,8 @@ const cli = path.join(dir, "..", "src", "cli.js");
 const procs = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function run(args, env = {}) {
-  const p = spawn(process.execPath, args, { env: { ...process.env, ...env }, stdio: ["ignore", "pipe", "pipe"] });
+function run(args, env = {}, command = process.execPath) {
+  const p = spawn(command, args, { env: { ...process.env, ...env }, stdio: ["ignore", "pipe", "pipe"] });
   p.output = "";
   p.stdout.on("data", (d) => (p.output += d));
   p.stderr.on("data", (d) => (p.output += d));
@@ -19,6 +19,8 @@ function run(args, env = {}) {
   return p;
 }
 const mock = (port, start) => run([path.join(dir, "mock-multiviewer.js"), port, start]);
+// MVRS_BIN=dist/multiviewer-replay-sync.exe npm test  runs the same tests against a built executable
+const app = (args, env) => (process.env.MVRS_BIN ? run(args, env, path.resolve(process.env.MVRS_BIN)) : run([cli, ...args], env));
 const mv = (port) => ({ MULTIVIEWER_URL: `http://localhost:${port}/api/graphql` });
 const user = async (port, action, q = "") => (await fetch(`http://localhost:${port}/user/${action}${q}`)).json();
 const states = (ports) => Promise.all(ports.map((p) => user(p, "state")));
@@ -56,10 +58,10 @@ try {
   const H = 11001, A = 11002, B = 11003; // fake MultiViewers with different starting positions
   mock(H, 600), mock(A, 100), mock(B, 900);
   await sleep(500);
-  const host = run([cli, "host", "--port", "8791", "--name", "host"], mv(H));
+  const host = app(["host", "--port", "8791", "--name", "host"], mv(H));
   await sleep(1500);
-  const anna = run([cli, "join", "127.0.0.1:8791", "--name", "anna"], mv(A));
-  const ben = run([cli, "join", "127.0.0.1:8791", "--name", "ben"], mv(B));
+  const anna = app(["join", "127.0.0.1:8791", "--name", "anna"], mv(A));
+  const ben = app(["join", "127.0.0.1:8791", "--name", "ben"], mv(B));
   const all = () => states([H, A, B]);
   const close = (s, d) => Math.abs(s.time - d.time) < d.tol;
   const together = (ss, tol = 1.5) => ss.every((s) => Math.abs(s.time - ss[0].time) < tol);
@@ -149,7 +151,7 @@ try {
   const E = 11004;
   mock(E, 10);
   await sleep(500);
-  const victim = run([cli, "join", "127.0.0.1:8795", "--name", "victim"], mv(E));
+  const victim = app(["join", "127.0.0.1:8795", "--name", "victim"], mv(E));
   const ev = await waitFor(() => user(E, "state"), (s) => s.paused && Math.abs(s.time - 75) < 0.5, 6000);
   check("a joiner rejects malformed state but follows valid state", ev.badQueries === 0 && ev.paused && Math.abs(ev.time - 75) < 0.5, ev);
   check("control characters in names are stripped", victim.output.includes("evil") && !victim.output.includes("\u001b"), victim.output);
@@ -161,11 +163,11 @@ try {
   const P1 = 11005, P2 = 11006, P3 = 11007;
   mock(P1, 200), mock(P2, 400), mock(P3, 800);
   await sleep(500);
-  const locked = run([cli, "host", "--port", "8792", "--name", "host2", "--password", "s3cret"], mv(P1));
+  const locked = app(["host", "--port", "8792", "--name", "host2", "--password", "s3cret"], mv(P1));
   await sleep(1500);
-  const wrong = run([cli, "join", "127.0.0.1:8792", "--name", "intruder", "--password", "nope"], mv(P2));
-  const none = run([cli, "join", "127.0.0.1:8792", "--name", "nopass"], mv(P2));
-  const right = run([cli, "join", "127.0.0.1:8792", "--name", "friend", "--password", "s3cret"], mv(P3));
+  const wrong = app(["join", "127.0.0.1:8792", "--name", "intruder", "--password", "nope"], mv(P2));
+  const none = app(["join", "127.0.0.1:8792", "--name", "nopass"], mv(P2));
+  const right = app(["join", "127.0.0.1:8792", "--name", "friend", "--password", "s3cret"], mv(P3));
   const [wrongCode, noneCode] = await Promise.all([
     Promise.race([wrong.exited, sleep(5000)]),
     Promise.race([none.exited, sleep(5000)]),
@@ -184,7 +186,7 @@ try {
   const D = 11008;
   mock(D, 10);
   await sleep(500);
-  run([cli, "join", "127.0.0.1:8796", "--name", "lonely"], { ...mv(D), MVRS_HEARTBEAT_MS: "300" });
+  app(["join", "127.0.0.1:8796", "--name", "lonely"], { ...mv(D), MVRS_HEARTBEAT_MS: "300" });
   await waitFor(async () => connections, (n) => n >= 2, 8000);
   check("a silent connection is detected and re-established", connections >= 2, `connections: ${connections}`);
   silent.close();

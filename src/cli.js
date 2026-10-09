@@ -23,6 +23,7 @@ Options:
   --name <name>        name shown to others (default: your user name)
   --password <text>    host: require this password; join: the room's password
   --player <id>        which MultiViewer player to follow (default: the main feed)
+  -v, --version        show the version
   -h, --help           show this help
 
 Everyone in the room can pause, resume and seek; it is mirrored to all.`;
@@ -115,6 +116,7 @@ async function main() {
         password: { type: "string" },
         player: { type: "string" },
         help: { type: "boolean", short: "h" },
+        version: { type: "boolean", short: "v" },
       },
     }));
   } catch (e) {
@@ -125,6 +127,10 @@ async function main() {
 
   const [command, target] = positionals;
   let mode, name, password;
+  if (values.version) {
+    console.log(process.env.MVRS_VERSION ?? "dev");
+    return;
+  }
   if (values.help || (command && command !== "host" && command !== "join")) {
     console.log(USAGE);
     return;

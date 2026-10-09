@@ -16,7 +16,25 @@ Replays only — live streams can't be seeked, so there's nothing to sync.
 
 ## Setup
 
-Everyone needs MultiViewer, an F1 TV account, and this app. Download it (green **Code** button → *Download ZIP*, or `git clone`), then:
+Everyone needs MultiViewer, an F1 TV account, and this app.
+
+### Easiest: download the app
+
+Get the file for your system from the **[latest release](../../releases/latest)** — no install, nothing else needed:
+
+| System | File | Start |
+|---|---|---|
+| **Windows** | `…-windows-x64.exe` | double-click |
+| **macOS** (Apple Silicon) | `…-macos-arm64.zip` | unzip, double-click |
+| **Linux** | `…-linux-x64.tar.gz` | unpack, run `./multiviewer-replay-sync` |
+
+The files aren't code-signed, so the first start shows a warning:
+- **Windows:** *"Windows protected your PC"* → **More info → Run anyway**.
+- **macOS:** if it's blocked → **System Settings → Privacy & Security → Open Anyway**.
+
+### Alternative: run from source
+
+For Intel Macs, or if you'd rather not run a downloaded executable. Download the code (green **Code** button → *Download ZIP*, or `git clone`), then:
 
 | | Install (once) | Start |
 |---|---|---|
@@ -80,7 +98,10 @@ MultiViewer has a local API (`localhost:10101`). Each person's app reads their p
 ```
 npm install
 npm test     # host + joiners against fake MultiViewer players, no real app needed
+npm run build   # standalone executable for this OS in dist/ (needs Node 25.5+)
 ```
+
+Releases: push a tag like `v0.2.0`. GitHub Actions builds the executables for all three systems, tests them, and publishes the release.
 
 Code: [`src/cli.js`](src/cli.js) (prompts/options), [`src/client.js`](src/client.js) (sync logic), [`src/server.js`](src/server.js) (room relay), [`src/multiviewer.js`](src/multiviewer.js) (MultiViewer API), [`src/protocol.js`](src/protocol.js) (message validation).
 

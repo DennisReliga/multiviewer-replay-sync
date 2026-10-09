@@ -25,9 +25,13 @@
     "start": "node src/cli.js",
     "host": "node src/cli.js host",
     "join": "node src/cli.js join",
+    "build": "node scripts/build.mjs",
     "test": "node test/e2e.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }
