@@ -16,7 +16,18 @@ Replays only: live streams can't be seeked, so there's nothing to sync.
 
 ## Setup
 
-Everyone needs MultiViewer, an F1 TV account, and this app.
+Everyone needs MultiViewer, an F1 TV account, this app, and a network connection to the host: either the same home network, or a virtual network like ZeroTier.
+
+### Getting on the same network (ZeroTier)
+
+Skip this if you're all on the same home network. Otherwise, set up a free [ZeroTier](https://www.zerotier.com) network once:
+
+1. **Everyone** installs [ZeroTier One](https://www.zerotier.com/download/).
+2. **The host** signs up at [my.zerotier.com](https://my.zerotier.com), clicks **Create A Network**, and shares the 16-character **Network ID** with the group.
+3. **Everyone** joins that network: ZeroTier tray icon → **Join New Network** → paste the Network ID. (Linux: `sudo zerotier-cli join <Network ID>`.)
+4. **The host** approves each friend on the network's page at my.zerotier.com: tick **Auth** next to their device.
+
+After that, everyone has a ZeroTier address (shown on the network's page and printed by the app when hosting). You only do this once; the network stays for future races.
 
 ### Download
 
